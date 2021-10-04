@@ -1,0 +1,41 @@
+version: '3'
+
+networks:
+  backend:
+    driver: bridge
+
+services:
+  app: # service名
+    build:
+      context: .
+      dockerfile: ./docker/go/Dockerfile
+    tty: true # コンテナの起動永続化
+    volumes:
+      - .:/go/src/work
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    networks:
+      - backend
+    command: gin run main.go
+    depends_on:
+      - mysql
+
+  mysql:
+    container_name: mysql
+    build:
+      context: .
+      dockerfile: ./docker/mysql/Dockerfile
+    environment:
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: kamuy
+    hostname: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+    security_opt:
+      - seccomp:unconfined
+    networks:
+      - backend
